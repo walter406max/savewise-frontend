@@ -3,33 +3,30 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#081b4b">
-<title>SaveWise - SafeLock</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐷</text></svg>">
+<meta name="theme-color" content="#0a1f44">
+<title>SafeLock · SaveWise</title>
+<link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="style.css">
 </head>
 <body data-page="safelock">
-<header class="hero">
+<header class="top">
   <div class="wrap">
-    <div class="topbar">
-      <div class="brand">🐷 SaveWise</div>
-      <div class="topright"><span id="hello" class="hello"></span><button class="icon-btn" id="logoutBtn">Log out</button></div>
+    <div class="hbar">
+      <div class="brand"><i data-ic="logo" data-s="24"></i><span>SaveWise</span></div>
+      <button class="ghost-btn" id="logoutBtn"><i data-ic="logout" data-s="18"></i><span>Sign out</span></button>
     </div>
-    <p class="hero-label">SafeLock · 12% a year</p>
-    <h1 class="hero-amount" id="lockTotal">$0.00</h1>
-    <div class="hero-chips">
-      <div class="chip"><span>Ready to claim</span><b id="lockInterest">$0.00</b></div>
-    </div>
-    <div class="hero-actions">
-      <button class="btn btn-light" id="lockBtn">🔒 Lock money</button>
-      <button class="btn btn-glass" id="claimBtn">✨ Claim Interest</button>
+    <p class="eyebrow">SafeLock</p>
+    <h1 class="amount" id="lockTotal">$0.00</h1>
+    <p class="sub" id="lockCount">0 active locks</p>
+    <div class="actions one">
+      <button class="btn btn-light" id="lockBtn"><i data-ic="lock" data-s="18"></i>Lock money</button>
     </div>
   </div>
 </header>
 <main class="container">
   <div id="lockList"></div>
   <section class="card" id="pastCard" style="display:none">
-    <h2>Past locks</h2>
+    <h2>Released locks</h2>
     <div id="pastList"></div>
   </section>
 </main>
