@@ -1,4 +1,4 @@
-/* SaveWise - app.js (used by every page) */
+/* SaveWise - app.js */
 (function () {
   'use strict';
 
@@ -13,16 +13,33 @@
   const pad = (n) => String(n).padStart(2, '0');
   const round2 = (n) => Math.round(n * 100) / 100;
 
+  /* ---------- icons ---------- */
+  const PATHS = {
+    logo: '<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>',
+    home: '<path d="M3 11l9-8 9 8"/><path d="M5 9.5V20h14V9.5"/>',
+    wallet: '<rect x="3" y="6" width="18" height="14" rx="2"/><path d="M3 10h18"/><circle cx="16.5" cy="15" r="1"/>',
+    target: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>',
+    lock: '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
+    unlock: '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 7.5-2"/>',
+    down: '<path d="M12 4v13"/><path d="M6 12l6 6 6-6"/>',
+    up: '<path d="M12 20V7"/><path d="M6 12l6-6 6 6"/>',
+    repeat: '<path d="M4 12a8 8 0 0 1 14-5l2 2"/><path d="M20 4v5h-5"/><path d="M20 12a8 8 0 0 1-14 5l-2-2"/><path d="M4 20v-5h5"/>',
+    plus: '<path d="M12 5v14M5 12h14"/>',
+    logout: '<path d="M9 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h4"/><path d="M16 8l4 4-4 4M20 12H9"/>',
+    chev: '<path d="M9 6l6 6-6 6"/>',
+  };
+  const ico = (n, s) => '<svg class="ic" viewBox="0 0 24 24" width="' + (s || 20) + '" height="' + (s || 20) + '" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (PATHS[n] || '') + '</svg>';
+  const hydrate = () => $$('[data-ic]').forEach((el) => { el.innerHTML = ico(el.dataset.ic, el.dataset.s); });
+
   /* ---------- session ---------- */
   const getToken = () => localStorage.getItem(TOKEN_KEY);
-  const getUser = () => { try { return JSON.parse(localStorage.getItem(USER_KEY)); } catch (e) { return null; } };
   function saveSession(d) { localStorage.setItem(TOKEN_KEY, d.token); localStorage.setItem(USER_KEY, JSON.stringify(d.user)); }
   function logout() { localStorage.removeItem(TOKEN_KEY); localStorage.removeItem(USER_KEY); location.href = 'index.html'; }
 
   /* ---------- API ---------- */
   async function api(path, method, body) {
     if (typeof API_URL === 'undefined' || API_URL.indexOf('YOUR-BACKEND') !== -1) {
-      throw new Error('Open config.js and set API_URL to your Render backend URL.');
+      throw new Error('API_URL is not set in config.js.');
     }
     const headers = { 'Content-Type': 'application/json' };
     const token = getToken();
@@ -33,7 +50,7 @@
         method: method || 'GET', headers, body: body ? JSON.stringify(body) : undefined,
       });
     } catch (e) {
-      throw new Error('Cannot reach the server. Check API_URL in config.js, or wait a minute and try again.');
+      throw new Error('Cannot reach the server. Check your connection and try again.');
     }
     let data = {};
     try { data = await res.json(); } catch (e) { /* no json */ }
@@ -49,7 +66,7 @@
     clearTimeout(loaderTimer);
     el.classList.toggle('show', on);
     $('#loaderHint').textContent = '';
-    if (on) loaderTimer = setTimeout(() => { $('#loaderHint').textContent = 'Waking up the server... free hosting can take up to a minute the first time.'; }, 4000);
+    if (on) loaderTimer = setTimeout(() => { $('#loaderHint').textContent = 'The server is starting up. This can take up to a minute.'; }, 4000);
   }
 
   function toast(msg, type) {
@@ -62,15 +79,15 @@
   }
 
   async function act(btn, fn) {
-    const old = btn.textContent;
-    btn.disabled = true; btn.textContent = 'Please wait...';
+    const old = btn.innerHTML;
+    btn.disabled = true; btn.textContent = 'Please wait';
     try { await fn(); } catch (e) { toast(e.message, 'err'); }
-    finally { btn.disabled = false; btn.textContent = old; }
+    finally { btn.disabled = false; btn.innerHTML = old; }
   }
 
   function showFatal(msg) {
     const m = $('main') || document.body;
-    m.insertAdjacentHTML('afterbegin', '<section class="card err-card"><h3>😕 Could not load</h3><p class="muted">' + esc(msg) + '</p><button class="btn btn-primary" onclick="location.reload()">Try again</button></section>');
+    m.insertAdjacentHTML('afterbegin', '<section class="card err-card"><h3>Could not load this page</h3><p class="muted">' + esc(msg) + '</p><button class="btn btn-primary" onclick="location.reload()">Try again</button></section>');
   }
 
   async function boot(fn) {
@@ -97,7 +114,7 @@
           ' placeholder="' + esc(f.placeholder || '') + '" value="' + esc(f.value || '') + '" autocomplete="off">';
       }
     });
-    h += '<div class="form-err" id="sheetErr"></div><button class="btn ' + (cfg.danger ? 'btn-danger' : 'btn-primary') + '" id="sheetGo">' + esc(cfg.submit) + '</button><button class="btn btn-text" id="sheetCancel">Cancel</button></div>';
+    h += '<div class="form-err" id="sheetErr"></div><button class="btn ' + (cfg.danger ? 'btn-danger' : 'btn-primary') + '" id="sheetGo">' + esc(cfg.submit) + '</button><button class="btn btn-quiet" id="sheetCancel">Cancel</button></div>';
     root.innerHTML = h;
     root.classList.add('show');
     const close = () => { root.classList.remove('show'); root.innerHTML = ''; };
@@ -115,7 +132,7 @@
     $('#sheetGo').onclick = async () => {
       (cfg.fields || []).forEach((f) => { if (f.type !== 'segment') vals[f.id] = $('#f_' + f.id).value.trim(); });
       const go = $('#sheetGo'), label = go.textContent;
-      go.disabled = true; go.textContent = 'Please wait...'; $('#sheetErr').textContent = '';
+      go.disabled = true; go.textContent = 'Please wait'; $('#sheetErr').textContent = '';
       try { await cfg.onSubmit(vals); close(); }
       catch (e) { $('#sheetErr').textContent = e.message; go.disabled = false; go.textContent = label; }
     };
@@ -123,28 +140,28 @@
 
   /* ---------- shared renderers ---------- */
   const TX = {
-    deposit: { icon: '⬇️', label: 'Deposit', sign: 1 },
-    withdraw: { icon: '⬆️', label: 'Withdrawal', sign: -1 },
-    interest: { icon: '✨', label: 'Interest', sign: 1 },
-    autosave: { icon: '🔁', label: 'Autosave', sign: 1 },
-    safelock_lock: { icon: '🔒', label: 'SafeLock locked', sign: 0 },
-    safelock_unlock: { icon: '🔓', label: 'SafeLock unlocked', sign: 0 },
-    goal_deposit: { icon: '🎯', label: 'Goal deposit', sign: 0 },
-    goal_refund: { icon: '↩️', label: 'Goal refund', sign: 0 },
+    deposit: { ic: 'down', label: 'Deposit', sign: 1, tone: 't-goal' },
+    withdraw: { ic: 'up', label: 'Withdrawal', sign: -1, tone: 't-out' },
+    autosave: { ic: 'repeat', label: 'Autosave', sign: 1, tone: 't-flex' },
+    interest: { ic: 'plus', label: 'Interest', sign: 1, tone: 't-neu' },
+    safelock_lock: { ic: 'lock', label: 'SafeLock', sign: 0, tone: 't-lock' },
+    safelock_unlock: { ic: 'unlock', label: 'SafeLock released', sign: 0, tone: 't-lock' },
+    goal_deposit: { ic: 'target', label: 'Goal deposit', sign: 0, tone: 't-goal' },
+    goal_refund: { ic: 'target', label: 'Goal refund', sign: 0, tone: 't-neu' },
   };
   function txHtml(t) {
-    const m = TX[t.type] || { icon: '💵', label: t.type, sign: 0 };
-    const cls = m.sign > 0 ? 'pos' : m.sign < 0 ? 'neg' : 'neu';
+    const m = TX[t.type] || { ic: 'wallet', label: t.type, sign: 0, tone: 't-neu' };
+    const cls = m.sign > 0 ? 'pos' : m.sign < 0 ? 'neg' : '';
     const sign = m.sign > 0 ? '+' : m.sign < 0 ? '-' : '';
-    return '<div class="tx"><div class="tx-ic ' + cls + '">' + m.icon + '</div><div class="tx-mid"><b>' + esc(m.label) + '</b><small>' + esc(t.description || '') + '</small><small>' + fmtDateTime(t.created_at) + '</small></div><div class="tx-amt ' + cls + '">' + sign + money(t.amount) + '</div></div>';
+    return '<div class="row"><span class="row-ic ' + m.tone + '">' + ico(m.ic, 20) + '</span><span class="row-main"><b>' + esc(m.label) + '</b><small>' + esc(t.description || '') + '</small><small>' + fmtDateTime(t.created_at) + '</small></span><span class="row-end ' + cls + '">' + sign + money(t.amount) + '</span></div>';
   }
-  const txList = (list) => list.length ? list.map(txHtml).join('') : '<div class="empty">No transactions yet. Make your first deposit! 💸</div>';
+  const txList = (list) => list.length ? list.map(txHtml).join('') : '<div class="empty"><p>No transactions yet</p><small>Your deposits and transfers will show up here.</small></div>';
 
-  function walletTile(href, cls, icon, name, sub, amount) {
-    return '<a class="wtile ' + cls + '" href="' + href + '"><div class="wt-ic">' + icon + '</div><div class="wt-mid"><b>' + name + '</b><small>' + sub + '</small></div><div class="wt-amt">' + money(amount) + '</div></a>';
+  function navRow(href, tone, icon, title, sub, amount) {
+    return '<a class="row" href="' + href + '"><span class="row-ic ' + tone + '">' + ico(icon, 20) + '</span><span class="row-main"><b>' + title + '</b><small>' + sub + '</small></span><span class="row-end">' + money(amount) + ico('chev', 16) + '</span></a>';
   }
   function progressRow(label, sub, pct) {
-    return '<div class="prow"><div class="prow-top"><b>' + esc(label) + '</b><span>' + pct + '%</span></div><div class="progress"><div class="bar" style="width:' + pct + '%"></div></div><small>' + esc(sub) + '</small></div>';
+    return '<div class="prow"><div class="prow-top"><b>' + esc(label) + '</b><span>' + esc(sub) + '</span></div><div class="track"><div class="fill' + (pct >= 100 ? ' done' : '') + '" style="width:' + pct + '%"></div></div></div>';
   }
   function lockPct(l) {
     const s = new Date(l.start_date), e = new Date(l.end_date);
@@ -159,19 +176,13 @@
     clearInterval(cdTimer);
     const tick = () => $$('[data-end]').forEach((el) => {
       const ms = new Date(el.dataset.end) - Date.now();
-      el.textContent = ms > 0 ? fmtCountdown(ms) : '🔓 Unlocked';
+      el.textContent = ms > 0 ? fmtCountdown(ms) : 'Unlocked';
       if (ms <= 0 && el.dataset.locked === '1' && !seen[el.dataset.id]) { seen[el.dataset.id] = true; if (onZero) onZero(); }
     });
     tick(); cdTimer = setInterval(tick, 1000);
   }
 
-  const claimInterest = (load) => async () => {
-    const r = await api('/api/wallet/claim-interest', 'POST');
-    toast(r.message, 'ok');
-    await load();
-  };
-
-  /* ---------- LOGIN PAGE ---------- */
+  /* ---------- LOGIN ---------- */
   function initLogin() {
     if (getToken()) { location.replace('dashboard.html'); return; }
     let mode = 'login';
@@ -180,7 +191,7 @@
       $$('#authTabs button').forEach((b) => b.classList.toggle('on', b.dataset.mode === m));
       $('#nameField').style.display = m === 'register' ? 'block' : 'none';
       $('#password').autocomplete = m === 'register' ? 'new-password' : 'current-password';
-      $('#authSubmit').textContent = m === 'register' ? 'Create account' : 'Log in';
+      $('#authSubmit').textContent = m === 'register' ? 'Create account' : 'Sign in';
       $('#authErr').textContent = '';
     };
     $('#authTabs').onclick = (e) => { const b = e.target.closest('button'); if (b) setMode(b.dataset.mode); };
@@ -189,8 +200,8 @@
       const btn = $('#authSubmit'), label = btn.textContent;
       const body = { email: $('#email').value.trim(), password: $('#password').value };
       if (mode === 'register') body.full_name = $('#full_name').value.trim();
-      btn.disabled = true; btn.textContent = 'Please wait...'; $('#authErr').textContent = '';
-      const hint = setTimeout(() => { $('#authHint').textContent = 'Waking up the server... this can take up to a minute the first time.'; }, 4000);
+      btn.disabled = true; btn.textContent = 'Please wait'; $('#authErr').textContent = '';
+      const hint = setTimeout(() => { $('#authHint').textContent = 'The server is starting up. This can take up to a minute.'; }, 4000);
       try {
         const res = await api('/api/auth/' + mode, 'POST', body);
         saveSession(res);
@@ -208,64 +219,51 @@
       const d = await api('/api/wallet/summary');
       const w = d.wallets;
       $('#totalBalance').textContent = money(d.total_balance);
-      $('#totalInterest').textContent = money(d.total_interest);
-      $('#pendingInterest').textContent = money(d.pending_interest);
+      $('#stAvail').textContent = money(w.flex.balance);
+      $('#stLocked').textContent = money(w.safelock.total);
+      $('#stGoals').textContent = money(w.goals.total);
       $('#wallets').innerHTML =
-        walletTile('wallet.html', 't-flex', '💳', 'Flex Wallet', 'Withdraw anytime · ' + w.flex.rate + '% p.a.', w.flex.balance) +
-        walletTile('safelock.html', 't-lock', '🔒', 'SafeLock', w.safelock.count + ' active · ' + w.safelock.rate + '% p.a.', w.safelock.total) +
-        walletTile('goals.html', 't-goal', '🎯', 'Target Savings', w.goals.count + (w.goals.count === 1 ? ' goal' : ' goals'), w.goals.total);
-      const rows = d.goals.map((g) => progressRow('🎯 ' + g.name, money(g.saved_amount) + ' of ' + money(g.target_amount), g.percent))
-        .concat(d.safelocks.map((l) => progressRow('🔒 ' + money(l.amount) + ' SafeLock', l.days_left + ' day(s) left', lockPct(l))));
-      $('#progress').innerHTML = rows.length ? rows.join('') : '<div class="empty">No goals or locks yet.<br><a class="btn btn-ghost btn-sm" href="goals.html">Create a goal</a></div>';
+        navRow('wallet.html', 't-flex', 'wallet', 'Flex Wallet', 'Available any time', w.flex.balance) +
+        navRow('safelock.html', 't-lock', 'lock', 'SafeLock', w.safelock.count + ' active', w.safelock.total) +
+        navRow('goals.html', 't-goal', 'target', 'Target Savings', w.goals.count + (w.goals.count === 1 ? ' goal' : ' goals'), w.goals.total);
+      const rows = d.goals.map((g) => progressRow(g.name, money(g.saved_amount) + ' of ' + money(g.target_amount), g.percent))
+        .concat(d.safelocks.map((l) => progressRow(money(l.amount) + ' SafeLock', l.days_left + (l.days_left === 1 ? ' day left' : ' days left'), lockPct(l))));
+      $('#progress').innerHTML = rows.length ? rows.join('') : '<div class="empty"><p>Nothing in progress</p><small>Create a goal or lock some money to track it here.</small></div>';
       $('#recentTx').innerHTML = txList(d.recent_transactions);
     };
-    $('#claimBtn').onclick = (e) => act(e.currentTarget, claimInterest(load));
     boot(load);
   }
 
   /* ---------- WALLET ---------- */
   function initWallet() {
-    let flex = 0, rate = 5;
+    let flex = 0;
     const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
-
-    const calc = () => {
-      const amt = parseFloat($('#calcAmt').value) || 0;
-      const days = parseFloat($('#calcDays').value) || 0;
-      const interest = amt * (rate / 100) * days / 365; // balance * rate * days / 365
-      $('#calcInterest').textContent = money(interest);
-      $('#calcTotal').textContent = money(amt + interest);
-    };
-
     const load = async () => {
       const s = await api('/api/wallet/summary');
       flex = s.wallets.flex.balance;
       $('#flexBalance').textContent = money(flex);
-      $('#pending').textContent = money(s.pending_interest);
       const [a, t] = await Promise.all([api('/api/wallet/autosave'), api('/api/wallet/transactions?limit=100')]);
       $('#rules').innerHTML = a.rules.length ? a.rules.map((r) =>
-        '<div class="rule"><div><b>' + money(r.amount) + '</b><span class="badge">' + cap(r.frequency) + '</span><small>Next save: ' + fmtDate(r.next_run) + '</small></div><button class="btn btn-soft-red btn-sm" data-stop="' + r.id + '">Stop</button></div>').join('')
-        : '<div class="empty">No autosave rules yet. Set one and save without thinking about it. 🔁</div>';
+        '<div class="row"><span class="row-ic t-flex">' + ico('repeat', 20) + '</span><span class="row-main"><b>' + money(r.amount) + ' ' + cap(r.frequency).toLowerCase() + '</b><small>Next: ' + fmtDate(r.next_run) + '</small></span><button class="btn btn-danger-soft btn-sm" data-stop="' + r.id + '">Stop</button></div>').join('')
+        : '<div class="empty"><p>No autosave rules</p><small>Set one up and save on a schedule.</small></div>';
       $('#txList').innerHTML = txList(t.transactions);
-      calc();
     };
-
     $('#depBtn').onclick = () => openSheet({
-      title: 'Deposit money', note: 'Adds demo money to your Flex wallet.', submit: 'Deposit',
+      title: 'Deposit', note: 'Adds demo funds to your Flex wallet.', submit: 'Deposit',
       fields: [{ id: 'amount', label: 'Amount (USD)', type: 'number', placeholder: '0.00' }],
       onSubmit: async (v) => { const r = await api('/api/wallet/deposit', 'POST', { amount: v.amount }); toast(r.message, 'ok'); await load(); },
     });
     $('#wdBtn').onclick = () => openSheet({
-      title: 'Withdraw money', note: 'Available: <b>' + money(flex) + '</b>', submit: 'Withdraw',
+      title: 'Withdraw', note: 'Available: <b>' + money(flex) + '</b>', submit: 'Withdraw',
       fields: [{ id: 'amount', label: 'Amount (USD)', type: 'number', placeholder: '0.00' }],
       onSubmit: async (v) => { const r = await api('/api/wallet/withdraw', 'POST', { amount: v.amount }); toast(r.message, 'ok'); await load(); },
     });
-    $('#claimBtn').onclick = (e) => act(e.currentTarget, claimInterest(load));
     $('#newRule').onclick = () => openSheet({
       title: 'New autosave rule', submit: 'Start autosave',
-      note: 'Money is added to your Flex wallet on schedule. Rules are applied when you open the app.',
+      note: 'Money moves into your Flex wallet on schedule. Rules are applied whenever you open the app.',
       fields: [
         { id: 'amount', label: 'Amount each time (USD)', type: 'number', placeholder: '0.00' },
-        { id: 'frequency', label: 'How often', type: 'segment', value: 'weekly', options: [{ value: 'daily', label: 'Daily' }, { value: 'weekly', label: 'Weekly' }, { value: 'monthly', label: 'Monthly' }] },
+        { id: 'frequency', label: 'Frequency', type: 'segment', value: 'weekly', options: [{ value: 'daily', label: 'Daily' }, { value: 'weekly', label: 'Weekly' }, { value: 'monthly', label: 'Monthly' }] },
       ],
       onSubmit: async (v) => { const r = await api('/api/wallet/autosave', 'POST', { amount: v.amount, frequency: v.frequency }); toast(r.message, 'ok'); await load(); },
     });
@@ -273,12 +271,6 @@
       const b = e.target.closest('[data-stop]'); if (!b) return;
       act(b, async () => { await api('/api/wallet/autosave/' + b.dataset.stop, 'DELETE'); toast('Autosave stopped', 'ok'); await load(); });
     };
-    $('#calcRate').onclick = (e) => {
-      const b = e.target.closest('button'); if (!b) return;
-      $$('#calcRate button').forEach((x) => x.classList.remove('on'));
-      b.classList.add('on'); rate = Number(b.dataset.rate); calc();
-    };
-    $('#calcAmt').oninput = calc; $('#calcDays').oninput = calc;
     boot(load);
   }
 
@@ -287,24 +279,24 @@
     let flex = 0, goals = [];
     const goalCard = (g) => {
       const done = g.saved_amount >= g.target_amount;
-      const when = g.days_left < 0 ? 'Deadline passed' : g.days_left === 0 ? 'Due today' : g.days_left + ' day' + (g.days_left === 1 ? '' : 's') + ' left';
-      return '<section class="card goal"><div class="goal-top"><div><h3>' + esc(g.name) + '</h3><small>Target ' + money(g.target_amount) + ' · by ' + fmtDate(g.deadline) + '</small></div><div class="pct">' + g.percent + '%</div></div>' +
-        '<div class="progress"><div class="bar" style="width:' + g.percent + '%"></div></div>' +
-        '<div class="goal-meta"><span><b>' + money(g.saved_amount) + '</b> saved</span>' + (done ? '<span class="badge done">🎉 Goal reached</span>' : '<span>⏳ ' + when + '</span>') + '</div>' +
-        '<div class="goal-actions">' + (done ? '' : '<button class="btn btn-primary btn-sm" data-act="add" data-id="' + g.id + '">Add money</button>') +
-        '<button class="btn btn-soft-red btn-sm" data-act="del" data-id="' + g.id + '">Remove</button></div></section>';
+      const when = g.days_left < 0 ? 'Deadline passed' : g.days_left === 0 ? 'Due today' : g.days_left + (g.days_left === 1 ? ' day left' : ' days left');
+      return '<section class="card"><div class="split"><div><h3>' + esc(g.name) + '</h3><small>Target ' + money(g.target_amount) + ' · due ' + fmtDate(g.deadline) + '</small></div><span class="pct">' + g.percent + '%</span></div>' +
+        '<div class="track"><div class="fill' + (done ? ' done' : '') + '" style="width:' + g.percent + '%"></div></div>' +
+        '<div class="meta"><span><b>' + money(g.saved_amount) + '</b> saved</span>' + (done ? '<span class="tag ok">Goal reached</span>' : '<span>' + when + '</span>') + '</div>' +
+        '<div class="btnrow">' + (done ? '' : '<button class="btn btn-primary btn-sm" data-act="add" data-id="' + g.id + '">Add money</button>') +
+        '<button class="btn btn-danger-soft btn-sm" data-act="del" data-id="' + g.id + '">Remove</button></div></section>';
     };
     const load = async () => {
       const d = await api('/api/goals');
       flex = d.flex_balance; goals = d.goals;
       $('#goalsTotal').textContent = money(round2(goals.reduce((s, g) => s + g.saved_amount, 0)));
       $('#goalsCount').textContent = goals.length + (goals.length === 1 ? ' goal' : ' goals');
-      $('#goalList').innerHTML = goals.length ? goals.map(goalCard).join('') : '<div class="card empty">You have no goals yet.<br>Save for a phone, rent, a trip... 🎯</div>';
+      $('#goalList').innerHTML = goals.length ? goals.map(goalCard).join('') : '<div class="card empty"><p>No goals yet</p><small>Create a goal to start saving toward it.</small></div>';
     };
     $('#newGoal').onclick = () => openSheet({
-      title: 'New savings goal', submit: 'Create goal',
+      title: 'New goal', submit: 'Create goal',
       fields: [
-        { id: 'name', label: 'Goal name', placeholder: 'e.g. New laptop' },
+        { id: 'name', label: 'Goal name', placeholder: 'e.g. Laptop' },
         { id: 'target', label: 'Target amount (USD)', type: 'number', placeholder: '0.00' },
         { id: 'deadline', label: 'Deadline', type: 'date', min: new Date(Date.now() + 86400000).toISOString().slice(0, 10) },
       ],
@@ -316,15 +308,15 @@
       if (b.dataset.act === 'add') {
         const left = round2(g.target_amount - g.saved_amount);
         openSheet({
-          title: 'Add to ' + g.name, submit: 'Add money',
-          note: 'Comes from your Flex wallet (<b>' + money(flex) + '</b>). You need <b>' + money(left) + '</b> more.',
+          title: 'Add to ' + esc(g.name), submit: 'Add money',
+          note: 'Comes from your Flex wallet (<b>' + money(flex) + '</b>). <b>' + money(left) + '</b> left to reach the target.',
           fields: [{ id: 'amount', label: 'Amount (USD)', type: 'number', placeholder: '0.00' }],
           onSubmit: async (v) => { const r = await api('/api/goals/' + g.id + '/deposit', 'POST', { amount: v.amount }); toast(r.message, 'ok'); await load(); },
         });
       } else {
         openSheet({
-          title: 'Remove this goal?', danger: true, submit: 'Yes, remove',
-          note: 'Any money saved in "' + esc(g.name) + '" (' + money(g.saved_amount) + ') goes back to your Flex wallet.',
+          title: 'Remove this goal?', danger: true, submit: 'Remove goal',
+          note: 'The ' + money(g.saved_amount) + ' saved in "' + esc(g.name) + '" will return to your Flex wallet.',
           onSubmit: async () => { await api('/api/goals/' + g.id, 'DELETE'); toast('Goal removed', 'ok'); await load(); },
         });
       }
@@ -335,17 +327,15 @@
   /* ---------- SAFELOCK ---------- */
   function initSafelock() {
     let flex = 0;
-    const lockCard = (l) => {
-      const interest = round2(l.interest_earned + l.pending_interest);
-      return '<section class="card lock"><div class="lock-top"><div><small>Locked amount</small><h3>' + money(l.amount) + '</h3></div><span class="badge">' + l.lock_days + ' days · ' + l.rate + '%</span></div>' +
-        '<small>Time left</small><div class="countdown" data-end="' + l.end_date + '" data-id="' + l.id + '" data-locked="' + (l.can_withdraw ? '0' : '1') + '">--</div>' +
-        '<div class="progress"><div class="bar" style="width:' + lockPct(l) + '%"></div></div>' +
-        '<div class="goal-meta"><span>Unlocks ' + fmtDate(l.end_date) + '</span><span>Interest <b>+' + money(interest) + '</b></span></div>' +
-        (l.can_withdraw
-          ? '<button class="btn btn-primary" data-w="' + l.id + '">Withdraw ' + money(l.amount + interest) + '</button>'
-          : '<button class="btn btn-ghost" disabled>🔒 Locked until ' + fmtDate(l.end_date) + '</button>') + '</section>';
-    };
-    const pastRow = (l) => '<div class="tx"><div class="tx-ic neu">🔓</div><div class="tx-mid"><b>' + money(l.amount) + ' · ' + l.lock_days + ' days</b><small>Withdrawn · ' + fmtDate(l.end_date) + '</small></div><div class="tx-amt pos">+' + money(l.interest_earned) + '</div></div>';
+    const lockCard = (l) =>
+      '<section class="card"><div class="split"><div><small>Locked amount</small><div class="figure">' + money(l.amount) + '</div></div><span class="tag">' + l.lock_days + ' days</span></div>' +
+      '<small>Time remaining</small><div class="countdown" data-end="' + l.end_date + '" data-id="' + l.id + '" data-locked="' + (l.can_withdraw ? '0' : '1') + '"></div>' +
+      '<div class="track"><div class="fill" style="width:' + lockPct(l) + '%"></div></div>' +
+      '<div class="meta"><span>Unlocks ' + fmtDate(l.end_date) + '</span></div>' +
+      (l.can_withdraw
+        ? '<button class="btn btn-primary" data-w="' + l.id + '">Withdraw ' + money(l.amount) + '</button>'
+        : '<button class="btn btn-soft" disabled>' + ico('lock', 18) + 'Locked until ' + fmtDate(l.end_date) + '</button>') + '</section>';
+    const pastRow = (l) => '<div class="row"><span class="row-ic t-lock">' + ico('unlock', 20) + '</span><span class="row-main"><b>' + money(l.amount) + '</b><small>' + l.lock_days + ' days · released ' + fmtDate(l.end_date) + '</small></span></div>';
 
     const load = async () => {
       const [s, d] = await Promise.all([api('/api/wallet/summary'), api('/api/wallet/safelock')]);
@@ -353,22 +343,21 @@
       const active = d.safelocks.filter((l) => l.status === 'active');
       const past = d.safelocks.filter((l) => l.status !== 'active');
       $('#lockTotal').textContent = money(s.wallets.safelock.total);
-      $('#lockInterest').textContent = money(s.pending_interest);
-      $('#lockList').innerHTML = active.length ? active.map(lockCard).join('') : '<div class="card empty">Nothing locked yet.<br>Lock money for 30, 60 or 90 days and earn ' + d.rate + '% a year. 🔒</div>';
+      $('#lockCount').textContent = active.length + (active.length === 1 ? ' active lock' : ' active locks');
+      $('#lockList').innerHTML = active.length ? active.map(lockCard).join('') : '<div class="card empty"><p>Nothing locked</p><small>Lock money for 30, 60 or 90 days to keep it out of reach.</small></div>';
       $('#pastCard').style.display = past.length ? 'block' : 'none';
       $('#pastList').innerHTML = past.map(pastRow).join('');
       startCountdowns(load);
     };
     $('#lockBtn').onclick = () => openSheet({
-      title: 'Lock money', submit: 'Lock it',
-      note: 'Available in Flex wallet: <b>' + money(flex) + '</b>. Earns <b>12% a year</b>. You <b>cannot</b> withdraw before the lock date.',
+      title: 'Lock money', submit: 'Lock funds',
+      note: 'Available in Flex wallet: <b>' + money(flex) + '</b>. Locked funds cannot be withdrawn before the unlock date.',
       fields: [
         { id: 'amount', label: 'Amount (USD)', type: 'number', placeholder: '0.00' },
-        { id: 'days', label: 'Lock for', type: 'segment', value: '30', options: [{ value: '30', label: '30 days' }, { value: '60', label: '60 days' }, { value: '90', label: '90 days' }] },
+        { id: 'days', label: 'Lock period', type: 'segment', value: '30', options: [{ value: '30', label: '30 days' }, { value: '60', label: '60 days' }, { value: '90', label: '90 days' }] },
       ],
       onSubmit: async (v) => { const r = await api('/api/wallet/safelock', 'POST', { amount: v.amount, days: Number(v.days) }); toast(r.message, 'ok'); await load(); },
     });
-    $('#claimBtn').onclick = (e) => act(e.currentTarget, claimInterest(load));
     $('#lockList').onclick = (e) => {
       const b = e.target.closest('[data-w]'); if (!b) return;
       act(b, async () => { const r = await api('/api/wallet/safelock/' + b.dataset.w + '/withdraw', 'POST'); toast(r.message, 'ok'); await load(); });
@@ -381,9 +370,12 @@
     document.body.insertAdjacentHTML('beforeend',
       '<div id="toasts"></div><div id="sheet" class="sheet"></div>' +
       '<div id="loader" class="loader"><div class="spinner"></div><p id="loaderHint"></p></div>');
-    const nav = $('#nav'); if (!nav) return;
-    const items = [['dashboard', 'dashboard.html', '🏠', 'Home'], ['wallet', 'wallet.html', '💳', 'Wallet'], ['goals', 'goals.html', '🎯', 'Goals'], ['safelock', 'safelock.html', '🔒', 'SafeLock']];
-    nav.innerHTML = items.map((i) => '<a href="' + i[1] + '" class="' + (i[0] === page ? 'on' : '') + '"><span>' + i[2] + '</span>' + i[3] + '</a>').join('');
+    const nav = $('#nav');
+    if (nav) {
+      const items = [['dashboard', 'dashboard.html', 'home', 'Home'], ['wallet', 'wallet.html', 'wallet', 'Wallet'], ['goals', 'goals.html', 'target', 'Goals'], ['safelock', 'safelock.html', 'lock', 'SafeLock']];
+      nav.innerHTML = items.map((i) => '<a href="' + i[1] + '" class="' + (i[0] === page ? 'on' : '') + '">' + ico(i[2], 22) + i[3] + '</a>').join('');
+    }
+    hydrate();
   }
 
   document.addEventListener('DOMContentLoaded', () => {
@@ -392,8 +384,6 @@
     if (page === 'login') return initLogin();
     if (!getToken()) { location.replace('index.html'); return; }
     const lo = $('#logoutBtn'); if (lo) lo.onclick = logout;
-    const u = getUser(), h = $('#hello');
-    if (h && u && u.full_name) h.textContent = 'Hi, ' + u.full_name.split(' ')[0] + ' 👋';
     const pages = { dashboard: initDashboard, wallet: initWallet, goals: initGoals, safelock: initSafelock };
     if (pages[page]) pages[page]();
   });
