@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#081b4b">
+<title>SaveWise - SafeLock</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐷</text></svg>">
+<link rel="stylesheet" href="style.css">
+</head>
+<body data-page="safelock">
+<header class="hero">
+  <div class="wrap">
+    <div class="topbar">
+      <div class="brand">🐷 SaveWise</div>
+      <div class="topright"><span id="hello" class="hello"></span><button class="icon-btn" id="logoutBtn">Log out</button></div>
+    </div>
+    <p class="hero-label">SafeLock · 12% a year</p>
+    <h1 class="hero-amount" id="lockTotal">$0.00</h1>
+    <div class="hero-chips">
+      <div class="chip"><span>Ready to claim</span><b id="lockInterest">$0.00</b></div>
+    </div>
+    <div class="hero-actions">
+      <button class="btn btn-light" id="lockBtn">🔒 Lock money</button>
+      <button class="btn btn-glass" id="claimBtn">✨ Claim Interest</button>
+    </div>
+  </div>
+</header>
+<main class="container">
+  <div id="lockList"></div>
+  <section class="card" id="pastCard" style="display:none">
+    <h2>Past locks</h2>
+    <div id="pastList"></div>
+  </section>
+</main>
+<nav id="nav" class="nav"></nav>
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
