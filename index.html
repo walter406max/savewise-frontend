@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#081b4b">
+<title>SaveWise - Log in</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐷</text></svg>">
+<link rel="stylesheet" href="style.css">
+</head>
+<body data-page="login">
+<header class="hero hero-auth">
+  <div class="wrap">
+    <div class="logo">🐷</div>
+    <h1 class="hero-amount">SaveWise</h1>
+    <p class="hero-sub">Save smart. Lock it. Watch it grow.</p>
+  </div>
+</header>
+<main class="container">
+  <section class="card">
+    <div class="seg" id="authTabs">
+      <button type="button" data-mode="login" class="on">Log in</button>
+      <button type="button" data-mode="register">Sign up</button>
+    </div>
+    <form id="authForm" novalidate>
+      <div id="nameField" style="display:none">
+        <label class="lbl" for="full_name">Full name</label>
+        <input class="input" id="full_name" type="text" autocomplete="name" placeholder="John Doe">
+      </div>
+      <label class="lbl" for="email">Email</label>
+      <input class="input" id="email" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com">
+      <label class="lbl" for="password">Password</label>
+      <input class="input" id="password" type="password" autocomplete="current-password" placeholder="At least 6 characters">
+      <div class="form-err" id="authErr"></div>
+      <button class="btn btn-primary" id="authSubmit" type="submit">Log in</button>
+    </form>
+    <p class="muted center small" id="authHint" style="margin-top:10px"></p>
+  </section>
+  <p class="muted center small">Demo app. All money is pretend: no real bank, no real funds.</p>
+</main>
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
