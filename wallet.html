@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#081b4b">
+<title>SaveWise - Wallet</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐷</text></svg>">
+<link rel="stylesheet" href="style.css">
+</head>
+<body data-page="wallet">
+<header class="hero">
+  <div class="wrap">
+    <div class="topbar">
+      <div class="brand">🐷 SaveWise</div>
+      <div class="topright"><span id="hello" class="hello"></span><button class="icon-btn" id="logoutBtn">Log out</button></div>
+    </div>
+    <p class="hero-label">Flex Wallet · 5% a year</p>
+    <h1 class="hero-amount" id="flexBalance">$0.00</h1>
+    <p class="hero-sub">Deposit or withdraw anytime</p>
+    <div class="hero-actions">
+      <button class="btn btn-light" id="depBtn">＋ Deposit</button>
+      <button class="btn btn-glass" id="wdBtn">Withdraw</button>
+    </div>
+  </div>
+</header>
+<main class="container">
+  <section class="card">
+    <h2>Interest</h2>
+    <p class="muted">Ready to claim</p>
+    <div class="big" id="pending">$0.00</div>
+    <button class="btn btn-ghost" id="claimBtn">✨ Claim Interest</button>
+  </section>
+
+  <section class="card">
+    <div class="card-head"><h2>Autosave</h2><button class="btn btn-ghost btn-sm" id="newRule">＋ New rule</button></div>
+    <div id="rules"></div>
+  </section>
+
+  <section class="card">
+    <h2>Interest calculator</h2>
+    <label class="lbl" for="calcAmt">Balance (USD)</label>
+    <input class="input" id="calcAmt" type="number" inputmode="decimal" value="1000">
+    <label class="lbl" for="calcDays">Days</label>
+    <input class="input" id="calcDays" type="number" inputmode="numeric" value="30">
+    <label class="lbl">Rate per year</label>
+    <div class="seg" id="calcRate">
+      <button type="button" data-rate="5" class="on">5% Flex</button>
+      <button type="button" data-rate="12">12% SafeLock</button>
+    </div>
+    <div class="calc-out">
+      <div><span>Interest</span><b class="g" id="calcInterest">$0.00</b></div>
+      <div><span>Total</span><b id="calcTotal">$0.00</b></div>
+    </div>
+    <p class="muted small" style="margin-top:10px">interest = balance × rate × days ÷ 365</p>
+  </section>
+
+  <section class="card" id="history">
+    <h2>Transaction history</h2>
+    <div id="txList"></div>
+  </section>
+</main>
+<nav id="nav" class="nav"></nav>
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
